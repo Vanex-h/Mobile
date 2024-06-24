@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { login } from "../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Feather } from '@expo/vector-icons';
+import { Feather } from "@expo/vector-icons";
 import { Text, TouchableOpacity, ImageBackground, Image } from "react-native";
 import { Toast } from "react-native-toast-notifications";
 import { AntDesign } from "@expo/vector-icons";
@@ -22,6 +22,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
+    const isEmailValid = (email: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+
+    if (!isEmailValid(email)) {
+      setError("Please enter a valid email address");
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
     try {
       const response = await login(email, password);
       await AsyncStorage.setItem("userToken", response.data.token);
@@ -57,28 +76,27 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            // autoCompleteType="email"
-            onBlur={() => {
-              // Email validation logic here
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(email)) {
-                // Handle invalid email input here
-                setError1("Invalid email");
-                setTimeout(() => {
-                  setError("");
-                }, 1000);
-              } else {
-                setError1("");
-              }
-            }}
           />
         </View>
-        {error1 && <Text style={tw`text-red-500 mb-2`}>{error1}</Text>}
         <View
           style={tw`flex flex-row items-center w-full px-3 py-2 border border-gray-300 rounded-md mb-4 h-12`}
         >
-          {passwordVisible ? (<AntDesign name="eyeo" size={24} color="black" onPress={() => setPasswordVisible((prev) => !prev)} />) : (<Feather name="eye-off" size={24} color="black"  onPress={() => setPasswordVisible((prev) => !prev)} />)}
-         {/* <AntDesign name="eyeo" size={24} color="black" /> */}
+          {passwordVisible ? (
+            <AntDesign
+              name="eyeo"
+              size={24}
+              color="black"
+              onPress={() => setPasswordVisible((prev) => !prev)}
+            />
+          ) : (
+            <Feather
+              name="eye-off"
+              size={24}
+              color="black"
+              onPress={() => setPasswordVisible((prev) => !prev)}
+            />
+          )}
+          {/* <AntDesign name="eyeo" size={24} color="black" /> */}
 
           <TextInput
             style={tw`w-full px-3 py-2 `}
@@ -94,14 +112,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         >
           <Text style={tw`text-white text-base m-auto font-bold`}>Log In</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-            style={tw`mt-4 hover:text-blue-400`}
-            onPress={() => navigation.push("Signup")}
-          >
-            <Text>
-              Don't have an account? <Text style={tw`text-blue-500`}>SignUp</Text>
-            </Text>
-          </TouchableOpacity> */}
       </View>
     </View>
   );

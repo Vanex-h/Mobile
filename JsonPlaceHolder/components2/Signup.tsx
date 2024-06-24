@@ -18,6 +18,47 @@ export const Signup: React.FC<SignupProps> = ({ onSignup }) => {
   const [error, setError] = useState("");
   const [error1, setError1] = useState("");
   const handleSignup = async () => {
+    if (!username || !email || !password) {
+      setError("Please fill in all fields");
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
+    if (username.length < 3 || username.trim() === "") {
+      setError("Username must be at least 3 characters long and not empty");
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
+    const isEmailValid = (email: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+
+    if (!isEmailValid(email)) {
+      setError("Please enter a valid email address");
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
+    const isPasswordValid = (password: string) => {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+      return passwordRegex.test(password);
+    };
+
+    if (!isPasswordValid(password)) {
+      setError(
+        "Invalid password. Password must contain at least 8 characters, including at least one lowercase letter, one uppercase letter, and one digit."
+      );
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+      return;
+    }
+
     try {
       await signup(username, email, password);
       Alert.alert("Success", "Account created successfully");
@@ -51,20 +92,6 @@ export const Signup: React.FC<SignupProps> = ({ onSignup }) => {
             placeholder="Username"
             value={username}
             onChangeText={setUsername}
-            onBlur={() => {
-              // Last name validation logic here
-              if (username.length < 3 || username.trim() === "") {
-                // Handle invalid last name input here
-                setError(
-                  "Last name must be at least 3 characters long and not empty"
-                );
-                setTimeout(() => {
-                  setError("");
-                }, 1000);
-              } else {
-                setError("");
-              }
-            }}
           />
         </View>
         {/* {error && <Text style={tw`text-red-500 mb-2`}>{error}</Text>} */}
@@ -82,16 +109,6 @@ export const Signup: React.FC<SignupProps> = ({ onSignup }) => {
             keyboardType="email-address"
             autoCapitalize="none"
             // autoCompleteType="email"
-            onBlur={() => {
-              // Email validation logic here
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(email)) {
-                // Handle invalid email input here
-                setError1("Invalid email");
-              } else {
-                setError1("");
-              }
-            }}
           />
         </View>
         {error1 && <Text style={tw`text-red-500 mb-2`}>{error1}</Text>}
@@ -106,22 +123,6 @@ export const Signup: React.FC<SignupProps> = ({ onSignup }) => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            onBlur={() => {
-              // Password validation logic here
-              const passwordRegex =
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-              if (!passwordRegex.test(password)) {
-                // Handle invalid password input here
-                setError(
-                  "Invalid password. Password must contain at least 8 characters, including at least one lowercase letter, one uppercase letter, and one digit."
-                );
-                setTimeout(() => {
-                  setError("");
-                }, 1000);
-              } else {
-                setError("");
-              }
-            }}
           />
         </View>
         {/* {error && <Text style={tw`text-red-500 mb-2`}>{error}</Text>} */}

@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import { getPost } from '../services/api';
-
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  FlatList,
+  SafeAreaView,
+} from "react-native";
+import { getComments, getPost } from "../services/api";
+import tw from "twrnc";
 interface Post {
   id: string;
   title: string;
   body: string;
-  Comments?: Comment[];
+  comments?: Comment[];
 }
 
 interface Comment {
@@ -23,6 +31,7 @@ export const PostDetails: React.FC<PostDetailsProps> = ({ postId }) => {
 
   useEffect(() => {
     fetchPost();
+    fetchComments();
   }, [postId]);
 
   const fetchPost = async () => {
@@ -30,7 +39,28 @@ export const PostDetails: React.FC<PostDetailsProps> = ({ postId }) => {
       const response = await getPost(postId);
       setPost(response.data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch post details');
+      Alert.alert("Error", "Failed to fetch post details");
+    }
+  };
+
+  const fetchComments = async () => {
+    // Fetch comments for the post
+    try {
+      const response = await getComments(postId)
+        .then((res) => {
+          setPost((prevPost) => {
+            if (prevPost) {
+              return {
+                ...prevPost,
+                comments: res.data,
+              };
+            }
+            return prevPost;
+          });
+        })
+        .then(() => console.log(post));
+    } catch (error) {
+      Alert.alert("Error", "Failed to fetch comments");
     }
   };
 
@@ -39,26 +69,39 @@ export const PostDetails: React.FC<PostDetailsProps> = ({ postId }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{post.title}</Text>
-      <Text style={styles.body}>{post.body}</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={tw`font-bold text-lg text-blue-400 `}>
+        Title:{" "}
+        <Text style={tw`font-bold text-lg text-black`}>{post.title}</Text>
+      </Text>
+      <Text style={tw` text-blue-400 font-bold mt-2`}>
+        Body: <Text style={tw`text-black font-light`}>{post.body}</Text>
+      </Text>
       <Text style={styles.commentsHeader}>Comments:</Text>
-      {post.Comments && post.Comments.map((comment) => (
-        <View key={comment.id} style={styles.comment}>
-          <Text>{comment.body}</Text>
-        </View>
-      ))}
-    </View>
+      {post.comments && (
+        <FlatList
+          data={post.comments}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Text style={tw`mb-4 border-2 p-3 border-blue-300 rounded`}>
+              {item.body}
+            </Text>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    height: 600,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   body: {
@@ -67,7 +110,7 @@ const styles = StyleSheet.create({
   },
   commentsHeader: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 16,
     marginBottom: 8,
   },
